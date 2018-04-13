@@ -82,7 +82,7 @@ class _RPN(nn.Module):
         rpn_cls_prob = self.reshape(rpn_cls_prob_reshape, self.nc_score_out)
 
         # get rpn offsets to the anchor boxes
-        rpn_bbox_pred = self.RPN_bbox_pred(rpn_conv1)
+        rpn_bbox_pred = self.RPN_bbox_pred(rpn_fused_conv)
 
         # proposal layer
         cfg_key = 'TRAIN' if self.training else 'TEST'
