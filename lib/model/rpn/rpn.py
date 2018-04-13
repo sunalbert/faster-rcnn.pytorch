@@ -28,10 +28,10 @@ class _RPN(nn.Module):
         self.RPN_Conv = nn.Conv2d(self.din, 512, 3, 1, 1, bias=True)
         
         # define the rec_convrelu layer for processing input feature map
-        self.RPN_Rec_Conv = nn.Conv2d(self.din, 512, kernel_size=(3, 5), stride=(1, 1), padding=(1, 2), bias=True)
+        self.RPN_Rec_Conv = nn.Conv2d(self.din, 512, kernel_size=(1, 23), stride=(1, 1), padding=(0, 11), bias=True)
 
         # define the fusion_conv layer for fusing the feature maps from convrelu and rec_convrelu
-        self.Fuse_Conv = nn.Conv2d(512*2, 512, 1,1,1, bias=False)
+        self.Fuse_Conv = nn.Conv2d(512*2, 512, 1, 1, 0, bias=False)
 
         # define bg/fg classifcation score layer
         self.nc_score_out = len(self.anchor_scales) * len(self.anchor_ratios) * 2 # 2(bg/fg) * 9 (anchors)
@@ -70,8 +70,9 @@ class _RPN(nn.Module):
         rpn_rec_conv1 = F.relu(self.RPN_Rec_Conv(base_feat), inplace=True)
 
         # fuse the feature maps from RPN_Conv and RPN_Rec_Conv
-        rpn_stacked = torch.stack((rpn_conv1, rpn_rec_conv1), dim=1)
+        rpn_stacked = torch.cat((rpn_conv1, rpn_rec_conv1), dim=1)
         rpn_fused_conv = F.relu(self.Fuse_Conv(rpn_stacked), inplace=True)
+        
 
         # get rpn classification score
         rpn_cls_score = self.RPN_cls_score(rpn_fused_conv)
