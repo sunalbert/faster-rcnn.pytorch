@@ -57,7 +57,7 @@ def parse_args():
                       help='set config keys', default=None,
                       nargs=argparse.REMAINDER)
   parser.add_argument('--load_dir', dest='load_dir',
-                      help='directory to load models', default="/srv/share/jyang375/models",
+                      help='directory to load models', default="/home/megvii/checkpoints",
                       type=str)
   parser.add_argument('--cuda', dest='cuda',
                       help='whether use CUDA',
@@ -215,7 +215,7 @@ if __name__ == '__main__':
 
   output_dir = get_output_dir(imdb, save_name)
   dataset = roibatchLoader(roidb, ratio_list, ratio_index, args.batch_size, \
-                        imdb.num_classes, training=False, normalize = False)
+                        imdb.num_classes, training=False, normalize=False)
   dataloader = torch.utils.data.DataLoader(dataset, batch_size=args.batch_size,
                             shuffle=False, num_workers=0,
                             pin_memory=True)

@@ -27,12 +27,14 @@ from .voc_eval import voc_eval
 
 # TODO: make fast_rcnn irrelevant
 # >>>> obsolete, because it depends on sth outside of this project
-from lib.model.utils.config import cfg
+from model.utils.config import cfg
 
 try:
-    xrange  # Python 2
+    xrange          # Python 2
 except NameError:
     xrange = range  # Python 3
+
+# <<<< obsolete
 
 
 class pascal_voc(imdb):
@@ -46,10 +48,10 @@ class pascal_voc(imdb):
         self._classes = ('__background__',  # always index 0
                          'shelf')
         self._class_to_ind = dict(zip(self.classes, xrange(self.num_classes)))
-        self._image_ext = '.JPG'
+        self._image_ext = '.jpg'
         self._image_index = self._load_image_set_index()
-
         # Default to roidb handler
+        # self._roidb_handler = self.selective_search_roidb
         self._roidb_handler = self.gt_roidb
         self._salt = str(uuid.uuid4())
         self._comp_id = 'comp4'
@@ -116,7 +118,6 @@ class pascal_voc(imdb):
         This function loads/saves from/to a cache file to speed up future calls.
         """
         cache_file = os.path.join(self.cache_path, self.name + '_gt_roidb.pkl')
-        print(cache_file)
         if os.path.exists(cache_file):
             with open(cache_file, 'rb') as fid:
                 roidb = pickle.load(fid)
@@ -205,12 +206,19 @@ class pascal_voc(imdb):
         filename = os.path.join(self._data_path, 'Annotations', index + '.xml')
         tree = ET.parse(filename)
         objs = tree.findall('object')
+        # if not self.config['use_diff']:
+        #     # Exclude the samples labeled as difficult
+        #     non_diff_objs = [
+        #         obj for obj in objs if int(obj.find('difficult').text) == 0]
+        #     # if len(non_diff_objs) != len(objs):
+        #     #     print 'Removed {} difficult objects'.format(
+        #     #         len(objs) - len(non_diff_objs))
+        #     objs = non_diff_objs
         num_objs = len(objs)
 
         boxes = np.zeros((num_objs, 4), dtype=np.uint16)
         gt_classes = np.zeros((num_objs), dtype=np.int32)
         overlaps = np.zeros((num_objs, self.num_classes), dtype=np.float32)
-
         # "Seg" area for pascal is just the box area
         seg_areas = np.zeros((num_objs), dtype=np.float32)
         ishards = np.zeros((num_objs), dtype=np.int32)
@@ -218,7 +226,6 @@ class pascal_voc(imdb):
         # Load object bounding boxes into a data frame.
         for ix, obj in enumerate(objs):
             bbox = obj.find('bndbox')
-
             # Make pixel indexes 0-based
             x1 = float(bbox.find('xmin').text) - 1
             y1 = float(bbox.find('ymin').text) - 1
@@ -226,7 +233,7 @@ class pascal_voc(imdb):
             y2 = float(bbox.find('ymax').text) - 1
 
             diffc = obj.find('difficult')
-            difficult = 0 if diffc is None else int(diffc.text)
+            difficult = 0 if diffc == None else int(diffc.text)
             ishards[ix] = difficult
 
             cls = self._class_to_ind[obj.find('name').text.lower().strip()]
